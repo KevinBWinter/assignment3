@@ -19,7 +19,6 @@ def main(hostname, port, filename):
             s.settimeout(10)
             s.connect((hostname, port))
             
-            # Protocol sequence
             expected_commands = [b'accio\r\n', b'accio\r\n']
             confirmations = [b'confirm-accio\r\n', b'confirm-accio-again\r\n\r\n']
 
