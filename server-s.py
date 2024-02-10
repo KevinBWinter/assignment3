@@ -4,16 +4,18 @@ import sys
 import time
 import threading
 
-# Define a global flag to control server loop execution
+# Define global variables
 not_stopped = True
 connection_count = 0
 connection_lock = threading.Lock()
 
+# Signal handler function
 def signal_handler(signum, frame):
     global not_stopped
     not_stopped = False
     print("Signal received, shutting down the server...")
 
+# Function to handle client connections
 def handle_client(client_socket):
     global connection_count
     try:
@@ -41,6 +43,7 @@ def handle_client(client_socket):
             connection_count -= 1
         client_socket.close()
 
+# Main function
 def main():
     global not_stopped
     global connection_count
