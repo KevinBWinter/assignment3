@@ -15,18 +15,20 @@ def signal_handler(signum, frame):
 
 def handle_client(client_socket):
     global connection_count, received_bytes
+    client_socket.settimeout(10)
     try:
         client_socket.sendall(b'accio\r\n')
-        client_socket.settimeout(10)
         
         confirmation = client_socket.recv(1024)
         if confirmation.strip() != b'confirm-accio':
+            client_socket.close()
             return
 
         client_socket.sendall(b'accio\r\n')
 
         second_confirmation = client_socket.recv(1024)
         if second_confirmation.strip() != b'confirm-accio-again':
+            client_socket.close()
             return
 
         while True:
@@ -37,9 +39,9 @@ def handle_client(client_socket):
                 received_bytes += len(data)
 
     except socket.timeout:
-        pass
+        sys.stderr.write("ERROR\n")
     except Exception as e:
-        pass
+        sys.stderr.write("ERROR\n")
     finally:
         with connection_lock:
             connection_count -= 1
@@ -49,10 +51,12 @@ def main():
     global not_stopped, connection_count, received_bytes
 
     if len(sys.argv) != 2:
+        sys.stderr.write("ERROR: Invalid number of arguments\n")
         sys.exit(1)
 
     port = int(sys.argv[1])
     if port < 0 or port > 65535:
+        sys.stderr.write("ERROR: Port number must be between 0 and 65535.\n")
         sys.exit(1)
 
     signal.signal(signal.SIGQUIT, signal_handler)
@@ -77,7 +81,7 @@ def main():
             except socket.timeout:
                 continue
             except Exception as e:
-                pass
+                sys.stderr.write("ERROR\n")
 
         while connection_count > 0:
             time.sleep(1)
