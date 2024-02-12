@@ -2,6 +2,7 @@ import socket
 import signal
 import sys
 import threading
+import time  # Import missing in the original code for time.sleep()
 
 # Define a global flag to control server loop execution
 not_stopped = True
@@ -60,6 +61,9 @@ def main():
         sys.exit(1)
 
     port = int(sys.argv[1])
+    if port < 0 or port > 65535:
+        sys.stderr.write("ERROR: Port number must be between 0 and 65535.\n")
+        sys.exit(1)
 
     # Register signal handlers
     signal.signal(signal.SIGQUIT, signal_handler)
@@ -94,3 +98,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
