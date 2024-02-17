@@ -41,12 +41,8 @@ def handle_client(client_socket, connection_id):
             if not chunk:
                 break
             data += chunk
-        if data:
-            with open(f'{file_dir}/{connection_id}.file', 'wb') as file:
-                file.write(data)
-        else:
-            with open(f'{file_dir}/{connection_id}.file', 'wb') as file:
-                file.write(b'')
+        with open(f'{file_dir}/{connection_id}.file', 'wb') as file:
+            file.write(data)
     except socket.timeout:
         with open(f'{file_dir}/{connection_id}.file', 'wb') as file:
             file.write(b'ERROR')
