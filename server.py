@@ -3,7 +3,6 @@ import socket
 import signal
 import threading
 import os
-import time
 
 def signal_handler(sig, frame):
     sys.exit(0)
@@ -33,8 +32,9 @@ server_socket.bind(('0.0.0.0', port))
 server_socket.listen()
 
 def handle_client(client_socket, connection_id):
-    client_socket.settimeout(10)
     try:
+        client_socket.sendall(b'accio\r\n')
+        client_socket.settimeout(10)
         data = b''
         while True:
             chunk = client_socket.recv(1024)
