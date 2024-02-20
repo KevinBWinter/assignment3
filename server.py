@@ -4,17 +4,9 @@ import threading
 import os
 import signal
 
-# Flag to indicate whether the server should continue running
-running = True
-
-# Lock for synchronizing access to the connection counter
-counter_lock = threading.Lock()
-
 # Handle SIGINT, SIGTERM, SIGQUIT signals
 def signal_handler(sig, frame):
-    global running
-    running = False
-    server_socket.close()  # Close the server socket to break out of the accept loop
+    sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
@@ -45,7 +37,6 @@ try:
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind(('0.0.0.0', port))
     server_socket.listen()
-    server_socket.setblocking(False)  # Set the socket to non-blocking mode
 except Exception as e:
     sys.stderr.write(f"ERROR: {str(e)}\n")
     sys.exit(1)
@@ -74,19 +65,9 @@ def handle_client(client_socket, connection_id):
 # Main loop to accept and handle client connections
 connection_counter = 0
 try:
-    while running:
-        try:
-            client_socket, _ = server_socket.accept()
-            with counter_lock:
-                connection_counter += 1
-                threading.Thread(target=handle_client, args=(client_socket, connection_counter)).start()
-        except BlockingIOError:
-            # This exception is expected when the server socket is in non-blocking mode and no connections are pending
-            continue
+    while True:
+        client_socket, _ = server_socket.accept()
+        connection_counter += 1
+        threading.Thread(target=handle_client, args=(client_socket, connection_counter)).start()
 except KeyboardInterrupt:
-    pass  # Ignore KeyboardInterrupt as we're already handling it with the signal handler
-
-# Wait for all threads to finish
-for thread in threading.enumerate():
-    if thread != threading.main_thread():
-        thread.join()
+    server_socket.close()
