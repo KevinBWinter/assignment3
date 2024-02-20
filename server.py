@@ -4,9 +4,14 @@ import threading
 import os
 import signal
 
+# Flag to indicate whether the server should continue running
+running = True
+
 # Handle SIGINT, SIGTERM, SIGQUIT signals
 def signal_handler(sig, frame):
-    sys.exit(0)
+    global running
+    running = False
+    server_socket.close()  # Close the server socket to break out of the accept loop
 
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
@@ -64,9 +69,18 @@ def handle_client(client_socket, connection_id):
 # Main loop to accept and handle client connections
 connection_counter = 0
 try:
-    while True:
-        client_socket, _ = server_socket.accept()
-        connection_counter += 1
-        threading.Thread(target=handle_client, args=(client_socket, connection_counter)).start()
+    while running:
+        try:
+            client_socket, _ = server_socket.accept()
+            connection_counter += 1
+            threading.Thread(target=handle_client, args=(client_socket, connection_counter)).start()
+        except OSError:
+            # This exception is expected when the server socket is closed
+            break
 except KeyboardInterrupt:
-    server_socket.close()
+    pass  # Ignore KeyboardInterrupt as we're already handling it with the signal handler
+
+# Wait for all threads to finish
+for thread in threading.enumerate():
+    if thread != threading.main_thread():
+        thread.join()
