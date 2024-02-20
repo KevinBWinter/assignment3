@@ -12,12 +12,12 @@ signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGQUIT, signal_handler)
 
 if len(sys.argv) != 3:
-    sys.stderr.write("ERROR: Incorrect number of arguments\n")
+    sys.stderr.write("ERROR: Usage: python3 server.py <PORT> <FILE-DIR>\n")
     sys.exit(1)
 
 try:
     port = int(sys.argv[1])
-    if port < 0 or port > 65535:
+    if port < 1 or port > 65535:
         raise ValueError
 except ValueError:
     sys.stderr.write("ERROR: Invalid port number\n")
@@ -27,9 +27,13 @@ file_dir = sys.argv[2]
 if not os.path.exists(file_dir):
     os.makedirs(file_dir)
 
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind(('0.0.0.0', port))
-server_socket.listen()
+try:
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind(('0.0.0.0', port))
+    server_socket.listen()
+except Exception as e:
+    sys.stderr.write(f"ERROR: {str(e)}\n")
+    sys.exit(1)
 
 def handle_client(client_socket, connection_id):
     try:
@@ -41,10 +45,12 @@ def handle_client(client_socket, connection_id):
             if not chunk:
                 break
             data += chunk
-        with open(f'{file_dir}/{connection_id}.file', 'wb') as file:
+        file_path = os.path.join(file_dir, f"{connection_id}.file")
+        with open(file_path, 'wb') as file:
             file.write(data)
     except socket.timeout:
-        with open(f'{file_dir}/{connection_id}.file', 'wb') as file:
+        file_path = os.path.join(file_dir, f"{connection_id}.file")
+        with open(file_path, 'wb') as file:
             file.write(b'ERROR')
     finally:
         client_socket.close()
