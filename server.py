@@ -44,6 +44,7 @@ except Exception as e:
 # Function to handle each client connection
 def handle_client(client_socket, connection_id):
     try:
+        client_socket.sendall(b'accio\r\n')  # Send the 'accio' command to the client
         client_socket.settimeout(10)
         data = b''
         while True:
