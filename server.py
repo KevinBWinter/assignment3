@@ -44,10 +44,6 @@ except Exception as e:
 # Function to handle each client connection
 def handle_client(client_socket, connection_id):
     try:
-        # Send the 'accio' command twice as expected by the client
-        client_socket.sendall(b'accio\r\n')
-        client_socket.sendall(b'accio\r\n')
-
         client_socket.settimeout(10)
         data = b''
         while True:
@@ -74,4 +70,3 @@ try:
         threading.Thread(target=handle_client, args=(client_socket, connection_counter)).start()
 except KeyboardInterrupt:
     server_socket.close()
-
