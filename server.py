@@ -39,7 +39,7 @@ except Exception as e:
 
 def handle_client(client_socket, connection_id):
     try:
-        print(f"Connection {connection_id} established")
+        print(f"Connection {connection_id} established from {client_socket.getpeername()}")
         client_socket.sendall(b'accio\r\n')
         client_socket.settimeout(10)
         data = b''
@@ -64,7 +64,7 @@ def handle_client(client_socket, connection_id):
 connection_counter = 0
 try:
     while True:
-        client_socket, _ = server_socket.accept()
+        client_socket, addr = server_socket.accept()
         connection_counter += 1
         threading.Thread(target=handle_client, args=(client_socket, connection_counter)).start()
 except KeyboardInterrupt:
