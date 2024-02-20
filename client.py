@@ -5,7 +5,7 @@ def send_file_contents(s, filename):
     try:
         with open(filename, 'rb') as file:
             while True:
-                chunk = file.read(10000)
+                chunk = file.read(1024)  # Use a smaller chunk size for better compatibility
                 if not chunk:
                     break
                 s.sendall(chunk)
@@ -18,20 +18,16 @@ def main(hostname, port, filename):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(10)
             s.connect((hostname, port))
-            
-            expected_commands = [b'accio\r\n', b'accio\r\n']
-            confirmations = [b'confirm-accio\r\n', b'confirm-accio-again\r\n\r\n']
+            s.sendall(b'accio\r\n')  # Send the accio command
 
-            for command, confirmation in zip(expected_commands, confirmations):
-                buffer = b""
-                while not buffer.endswith(command):
-                    data = s.recv(1024)
-                    if not data:
-                        raise Exception("Connection closed by server")
-                    buffer += data
-                s.sendall(confirmation)
+            buffer = b""
+            while not buffer.endswith(b'accio\r\n'):  # Wait for the accio command confirmation
+                data = s.recv(1024)
+                if not data:
+                    raise Exception("Connection closed by server")
+                buffer += data
             
-            send_file_contents(s, filename)
+            send_file_contents(s, filename)  # Send the file contents
 
     except Exception as e:
         sys.stderr.write(f"ERROR: {str(e)}\n")
@@ -54,3 +50,4 @@ if __name__ == "__main__":
         sys.exit(1)
 
     main(host, port, filename)
+
