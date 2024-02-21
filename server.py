@@ -1,4 +1,3 @@
-
 import sys
 import socket
 import threading
@@ -45,25 +44,29 @@ except Exception as e:
 # Function to handle each client connection
 def handle_client(client_socket, connection_id):
     try:
-        # Send the 'accio' command twice as expected by the client
+        # Send the 'accio' command to the client twice
         client_socket.sendall(b'accio\r\n')
         client_socket.sendall(b'accio\r\n')
 
         client_socket.settimeout(10)
-        data = b''
+        cmd = b""
+        while not cmd.endswith(b'accio\r\naccio\r\n'):  # Wait for two accio commands
+            data = client_socket.recv(1024)
+            if not data:
+                raise Exception("Connection closed by server")
+            cmd += data
+        
+        # Start receiving file data after receiving the two accio commands
+        data = b""
         while True:
             chunk = client_socket.recv(1024)
             if not chunk:
                 break
             data += chunk
 
-        if data:  # Check if any data was received
-            file_path = os.path.join(file_dir, f"{connection_id}.file")
-            with open(file_path, 'wb') as file:
-                file.write(data)
-        else:  # No data received, create an empty file
-            file_path = os.path.join(file_dir, f"{connection_id}.file")
-            open(file_path, 'wb').close()
+        file_path = os.path.join(file_dir, f"{connection_id}.file")
+        with open(file_path, 'wb') as file:
+            file.write(data)
 
     except socket.timeout:
         file_path = os.path.join(file_dir, f"{connection_id}.file")
