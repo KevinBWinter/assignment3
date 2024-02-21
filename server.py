@@ -55,9 +55,15 @@ def handle_client(client_socket, connection_id):
             if not chunk:
                 break
             data += chunk
-        file_path = os.path.join(file_dir, f"{connection_id}.file")
-        with open(file_path, 'wb') as file:
-            file.write(data)
+
+        if data:  # Check if any data was received
+            file_path = os.path.join(file_dir, f"{connection_id}.file")
+            with open(file_path, 'wb') as file:
+                file.write(data)
+        else:  # No data received, create an empty file
+            file_path = os.path.join(file_dir, f"{connection_id}.file")
+            open(file_path, 'wb').close()
+
     except socket.timeout:
         file_path = os.path.join(file_dir, f"{connection_id}.file")
         with open(file_path, 'wb') as file:
@@ -74,4 +80,3 @@ try:
         threading.Thread(target=handle_client, args=(client_socket, connection_counter)).start()
 except KeyboardInterrupt:
     server_socket.close()
-
