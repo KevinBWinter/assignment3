@@ -44,11 +44,8 @@ except Exception as e:
 # Function to handle each client connection
 def handle_client(client_socket, connection_id):
     try:
-        # Send the 'accio' command and wait for confirmation
+        # Send the 'accio' command to the client
         client_socket.sendall(b'accio\r\n')
-        confirmation = client_socket.recv(1024)
-        if confirmation.strip() != b'confirm-accio':
-            raise Exception("Client did not confirm 'accio' command")
 
         client_socket.settimeout(10)
         data = b''
