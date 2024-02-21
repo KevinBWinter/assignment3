@@ -27,8 +27,6 @@ def main(hostname, port, filename):
                     raise Exception("Connection closed by server")
                 buffer += data
             
-            s.sendall(b'confirm-accio\r\n')  # Send confirmation response
-
             send_file_contents(s, filename)  # Send the file contents
 
     except Exception as e:
@@ -50,8 +48,6 @@ if __name__ == "__main__":
     if not (1 <= port <= 65535):
         sys.stderr.write("ERROR: Port number out of valid range\n")
         sys.exit(1)
-
-    main(host, port, filename)
 
     main(host, port, filename)
 
