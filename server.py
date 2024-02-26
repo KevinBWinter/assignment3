@@ -46,13 +46,7 @@ def handle_client(client_socket, connection_id):
     try:
         # Send the 'accio' command twice as expected by the client
         client_socket.sendall(b'accio\r\n')
-        response = client_socket.recv(1024).strip()  # Expecting acknowledgment
-        if response != b'confirm-accio':
-            raise Exception("Client did not confirm 'accio' command correctly.")
         client_socket.sendall(b'accio\r\n')
-        response = client_socket.recv(1024).strip()  # Expecting second acknowledgment
-        if response != b'confirm-accio-again':
-            raise Exception("Client did not confirm 'accio' command correctly the second time.")
 
         client_socket.settimeout(10)
         data = b''
