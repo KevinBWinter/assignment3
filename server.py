@@ -44,30 +44,30 @@ except Exception as e:
 # Function to handle each client connection
 def handle_client(client_socket, connection_id):
     try:
-        # Send the 'accio' command to the client twice
+        # Send the 'accio' command twice as expected by the client
         client_socket.sendall(b'accio\r\n')
+        response = client_socket.recv(1024).strip()  # Expecting acknowledgment
+        if response != b'confirm-accio':
+            raise Exception("Client did not confirm 'accio' command correctly.")
         client_socket.sendall(b'accio\r\n')
+        response = client_socket.recv(1024).strip()  # Expecting second acknowledgment
+        if response != b'confirm-accio-again':
+            raise Exception("Client did not confirm 'accio' command correctly the second time.")
 
         client_socket.settimeout(10)
-        cmd = b""
-        while not cmd.endswith(b'accio\r\naccio\r\n'):  # Wait for two accio commands
-            data = client_socket.recv(1024)
-            if not data:
-                raise Exception("Connection closed by server")
-            cmd += data
-        
-        # Start receiving file data after receiving the two accio commands
-        data = b""
+        data = b''
         while True:
             chunk = client_socket.recv(1024)
             if not chunk:
                 break
             data += chunk
-
-        file_path = os.path.join(file_dir, f"{connection_id}.file")
-        with open(file_path, 'wb') as file:
-            file.write(data)
-
+        if data:
+            file_path = os.path.join(file_dir, f"{connection_id}.file")
+            with open(file_path, 'wb') as file:
+                file.write(data)
+        else:  # Create an empty file if no data received
+            file_path = os.path.join(file_dir, f"{connection_id}.file")
+            open(file_path, 'wb').close()
     except socket.timeout:
         file_path = os.path.join(file_dir, f"{connection_id}.file")
         with open(file_path, 'wb') as file:
